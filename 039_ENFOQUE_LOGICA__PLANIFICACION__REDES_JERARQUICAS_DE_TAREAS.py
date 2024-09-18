@@ -1,49 +1,59 @@
-class Tarea:
-    def __init__(self, nombre, subtasks=None):
-        self.nombre = nombre
-        self.subtasks = subtasks if subtasks else []
+#Practica: 039_ENFOQUE_LOGICA__PLANIFICACION__REDES_JERARQUICAS_DE_TAREAS
+#Alumno: IVAN_DOMINGUEZ
+#Registro: 21310234
+#Grupo: 7F1
 
-def planificar(red_tareas, objetivo):
-    plan = []
+# Definimos un planificador basado en redes jerárquicas de tareas (HTN) para organizar una cena.
 
-    # Función recursiva para buscar la tarea objetivo
-    def buscar_tarea(tarea_actual):
-        # Si la tarea actual es el objetivo, agregamos la tarea al plan
-        if tarea_actual.nombre == objetivo:
-            plan.append(tarea_actual.nombre)
-            return True
-        # Buscamos en las subtareas recursivamente
-        for subtask in tarea_actual.subtasks:
-            if buscar_tarea(subtask):
-                plan.append(tarea_actual.nombre)
-                return True
-        return False
+# Función para descomponer la tarea de preparar la cena
+def preparar_cena():
+    # Definimos las subtareas necesarias para preparar una cena
+    print("Plan para preparar la cena:")
+    comprar_ingredientes()
+    cocinar()
+    poner_la_mesa()
+    servir_comida()
+    print("Cena lista!")
 
-    # Buscamos el objetivo desde la raíz de la red de tareas
-    buscar_tarea(red_tareas)
+# Función para descomponer la tarea de comprar ingredientes
+def comprar_ingredientes():
+    # Subtareas específicas para comprar ingredientes
+    print("- Ir al supermercado")
+    print("- Comprar verduras, carne, y pan")
+    print("- Regresar a casa")
 
-    # Invertimos el plan para que esté en el orden correcto
-    plan.reverse()
-    return plan
+# Función para descomponer la tarea de cocinar
+def cocinar():
+    # Subtareas específicas para cocinar
+    print("- Lavar las verduras")
+    print("- Cortar las verduras y carne")
+    print("- Cocinar los ingredientes")
+    print("- Preparar una ensalada")
 
-# Definimos la red de tareas
-tarea1 = Tarea("Tarea1")
-tarea2 = Tarea("Tarea2")
-tarea3 = Tarea("Tarea3")
-tarea4 = Tarea("Tarea4")
-tarea5 = Tarea("Tarea5", [tarea1, tarea2])
-tarea6 = Tarea("Tarea6", [tarea3, tarea4])
-tarea7 = Tarea("Tarea7", [tarea5, tarea6])
+# Función para descomponer la tarea de poner la mesa
+def poner_la_mesa():
+    # Subtareas específicas para poner la mesa
+    print("- Colocar platos, vasos y cubiertos")
+    print("- Poner servilletas")
+    print("- Acomodar las sillas")
 
-# Definimos el objetivo
-objetivo = "Tarea4"
+# Función para servir la comida
+def servir_comida():
+    # Subtareas específicas para servir la comida
+    print("- Servir la comida en los platos")
+    print("- Llamar a los invitados")
 
-# Planificamos la tarea para alcanzar el objetivo
-plan = planificar(tarea7, objetivo)
+# Función principal que ejecuta el plan
+if __name__ == "__main__":
+    preparar_cena()  # Ejecuta la tarea de alto nivel y la descompone en pasos detallados
 
-# Mostramos el plan resultante
-if plan:
-    print("Plan encontrado para alcanzar el objetivo '{}':".format(objetivo))
-    print(plan)
-else:
-    print("No se pudo encontrar un plan para alcanzar el objetivo '{}'".format(objetivo))
+#Este programa simulará un planificador simple basado en una red jerárquica de tareas para organizar
+#una cena. A partir de una tarea de alto nivel, como "preparar la cena", el planificador descompondrá
+#la tarea en subtareas más simples hasta que todas las tareas puedan ejecutarse secuencialmente.
+
+#El programa simula una red jerárquica de tareas (HTN) para planificar la preparación de una cena.
+#Las HTN son utilizadas en sistemas de inteligencia artificial para descomponer tareas complejas en
+#subtareas más simples, hasta que cada una pueda ser ejecutada de manera secuencial o concurrente.
+#Este enfoque es útil en la planificación de actividades de la vida cotidiana, como el ejemplo de la
+#cena, y en aplicaciones más complejas, como la robótica, juegos y sistemas de planificación de
+#proyectos.
