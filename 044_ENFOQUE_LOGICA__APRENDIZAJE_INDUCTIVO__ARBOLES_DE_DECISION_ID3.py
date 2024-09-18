@@ -1,78 +1,70 @@
-import numpy as np
+#Practica: 044_ENFOQUE_LOGICA__APRENDIZAJE_INDUCTIVO__ARBOLES_DE_DESICION_ID3
+#Alumno: IVAN_DOMINGUEZ
+#Registro: 21310234
+#Grupo: 7F1
 
-class NodoDecision:
-    def __init__(self, caracteristica=None, valor=None, resultados=None, verdadero=None, falso=None):
-        self.caracteristica = caracteristica  # Característica que se evalúa en este nodo
-        self.valor = valor  # Valor de la característica que se compara en este nodo
-        self.resultados = resultados  # Resultados (etiquetas) en este nodo si es una hoja
-        self.verdadero = verdadero  # Nodo hijo si la característica es verdadera
-        self.falso = falso  # Nodo hijo si la característica es falsa
+# Importamos las bibliotecas necesarias
+from sklearn import datasets  # Para cargar ejemplos de datos
+from sklearn.model_selection import train_test_split  # Para dividir los datos en entrenamiento y prueba
+from sklearn.tree import DecisionTreeClassifier  # Para crear el árbol de decisión
+from sklearn import tree  # Para visualizar el árbol
+import pandas as pd  # Para manejar datos estructurados como tablas
+import numpy as np  # Para operaciones matemáticas
+import matplotlib.pyplot as plt  # Para visualizar el árbol
 
-def entropia(datos):
-    # Calcula la entropía del conjunto de datos
-    etiquetas = datos[:, -1]
-    clases, cuenta = np.unique(etiquetas, return_counts=True)
-    probabilidad = cuenta / len(etiquetas)
-    entropia = -np.sum(probabilidad * np.log2(probabilidad))
-    return entropia
+# Creamos un conjunto de datos que simula condiciones climáticas y decisiones para llevar paraguas.
+data = {'Clima': ['soleado', 'soleado', 'nublado', 'lluvioso', 'lluvioso', 'lluvioso', 'nublado', 'soleado', 'soleado', 'lluvioso'],
+        'Temperatura': ['caliente', 'caliente', 'caliente', 'templado', 'frío', 'frío', 'frío', 'templado', 'frío', 'templado'],
+        'Humedad': ['alta', 'alta', 'alta', 'alta', 'normal', 'normal', 'normal', 'alta', 'normal', 'alta'],
+        'Viento': ['débil', 'fuerte', 'débil', 'débil', 'débil', 'fuerte', 'fuerte', 'débil', 'débil', 'fuerte'],
+        'Paraguas': ['no', 'no', 'sí', 'sí', 'sí', 'no', 'sí', 'no', 'sí', 'sí']}
 
-def ganancia_informacion(datos, caracteristica_index):
-    # Calcula la ganancia de información para una característica dada
-    entropia_total = entropia(datos)
-    valores = datos[:, caracteristica_index]
-    clases, cuenta = np.unique(valores, return_counts=True)
-    peso = cuenta / len(valores)
-    ganancia = entropia_total
-    for clase, p in zip(clases, peso):
-        subconjunto = datos[valores == clase]
-        ganancia -= p * entropia(subconjunto)
-    return ganancia
+# Convertimos los datos a un DataFrame de pandas para manejarlos mejor.
+df = pd.DataFrame(data)
 
-def construir_arbol(datos, caracteristicas):
-    # Función recursiva para construir el árbol de decisión
-    if len(np.unique(datos[:, -1])) == 1:
-        return NodoDecision(resultados=np.unique(datos[:, -1]))
+# Mapeamos los datos categóricos a valores numéricos para que el algoritmo ID3 pueda procesarlos.
+df['Clima'] = df['Clima'].map({'soleado': 0, 'nublado': 1, 'lluvioso': 2})
+df['Temperatura'] = df['Temperatura'].map({'caliente': 0, 'templado': 1, 'frío': 2})
+df['Humedad'] = df['Humedad'].map({'alta': 0, 'normal': 1})
+df['Viento'] = df['Viento'].map({'débil': 0, 'fuerte': 1})
+df['Paraguas'] = df['Paraguas'].map({'no': 0, 'sí': 1})
 
-    ganancias = [ganancia_informacion(datos, i) for i in range(len(caracteristicas))]
-    mejor_caracteristica_index = np.argmax(ganancias)
-    mejor_caracteristica = caracteristicas[mejor_caracteristica_index]
+# Dividimos los datos en características (X) y la etiqueta objetivo (y).
+X = df[['Clima', 'Temperatura', 'Humedad', 'Viento']]  # Características de entrada
+y = df['Paraguas']  # Etiqueta de salida (si llevar paraguas o no)
 
-    nodo = NodoDecision(caracteristica=mejor_caracteristica)
+# Dividimos los datos en conjuntos de entrenamiento y prueba (80% entrenamiento, 20% prueba)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    valores = np.unique(datos[:, mejor_caracteristica_index])
-    for valor in valores:
-        subconjunto = datos[datos[:, mejor_caracteristica_index] == valor]
-        nuevo_caracteristicas = np.delete(caracteristicas, mejor_caracteristica_index)
-        nodo_hijo = construir_arbol(subconjunto, nuevo_caracteristicas)
-        if valor == 0:
-            nodo.falso = nodo_hijo
-        else:
-            nodo.verdadero = nodo_hijo
-    return nodo
+# Creamos el clasificador de árbol de decisión usando el algoritmo ID3 (DecisionTreeClassifier en sklearn)
+clf = DecisionTreeClassifier(criterion='entropy')  # 'entropy' usa el concepto de entropía para la división
 
-def predecir_muestra(arbol, muestra):
-    # Función para predecir una muestra utilizando el árbol de decisión
-    if arbol.resultados is not None:
-        return arbol.resultados
-    valor = muestra[arbol.caracteristica]
-    rama = arbol.verdadero if valor == 1 else arbol.falso
-    return predecir_muestra(rama, muestra)
+# Entrenamos el clasificador con los datos de entrenamiento
+clf.fit(X_train, y_train)
 
-# Ejemplo de datos de entrada
-# Cada fila representa una muestra, y la última columna es la etiqueta (0 o 1)
-datos = np.array([
-    [1, 1, 0],
-    [1, 0, 0],
-    [0, 1, 1],
-    [0, 0, 1]
-])
+# Evaluamos el rendimiento del clasificador con los datos de prueba
+accuracy = clf.score(X_test, y_test)
+print(f'Precisión del modelo: {accuracy * 100:.2f}%')
 
-# Nombre de las características (en este caso, solo "Característica 1" y "Característica 2")
-caracteristicas = ["Característica 1", "Característica 2"]
+# Visualizamos el árbol de decisión
+plt.figure(figsize=(10,8))  # Ajustamos el tamaño de la figura
+tree.plot_tree(clf, feature_names=X.columns, class_names=['No', 'Sí'], filled=True)
+plt.show()
 
-# Construir el árbol de decisión
-arbol = construir_arbol(datos, caracteristicas)
+# Hacemos una predicción para un nuevo caso
+# Por ejemplo: Clima = 'lluvioso', Temperatura = 'templado', Humedad = 'alta', Viento = 'débil'
+nuevo_dato = pd.DataFrame([[2, 1, 0, 0]], columns=['Clima', 'Temperatura', 'Humedad', 'Viento'])  # Crear DataFrame con nombres de características
+prediccion = clf.predict(nuevo_dato)
+resultado = 'sí' if prediccion[0] == 1 else 'no'
+print(f'¿Debería llevar paraguas? {resultado}')
 
-# Ejemplo de predicción para una nueva muestra
-nueva_muestra = np.array([1, 1])
-print("Predicción para la nueva muestra:", predecir_muestra(arbol, nueva_muestra))
+#Este programa implementa el algoritmo ID3 para construir un árbol de decisión basado en un
+#conjunto de datos sobre el clima y las condiciones para decidir si llevar o no un paraguas. El
+#aprendizaje inductivo se refiere a extraer patrones generales de ejemplos específicos, y en este caso,
+#el árbol de decisión aprende las reglas que determinan si se debe llevar un paraguas, basándose en
+#ejemplos previos.
+
+#La entropía mide la incertidumbre de un conjunto de datos, y el árbol de decisión construye su
+#estructura eligiendo en cada paso la característica que reduce más la incertidumbre (es decir, la que
+#proporciona la mayor ganancia de información).
+
